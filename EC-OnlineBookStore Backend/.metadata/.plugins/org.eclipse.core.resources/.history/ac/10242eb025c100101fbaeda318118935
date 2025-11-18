@@ -1,0 +1,11 @@
+package com.nit.service;
+
+import com.nit.model.OrderDto;
+
+public interface OrderService {
+
+	String saveOrders(OrderDto orderDto);
+
+	String saveOrders(org.springframework.data.domain.jaxb.SpringDataJaxb.OrderDto orderDto);
+
+}

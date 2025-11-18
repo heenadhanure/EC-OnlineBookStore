@@ -1,0 +1,212 @@
+package com.nit.controller;
+
+import java.net.HttpURLConnection;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.nit.entity.Customer;
+import com.nit.model.CustomerDto;
+import com.nit.model.ResponseMessage;
+import com.nit.service.CustomerService;
+import com.nit.utility.Constants;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
+@RestController
+@RequestMapping("/customer")
+public class CustomerController {
+	
+	public static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
+	
+	@Autowired
+	private CustomerService customerService;
+	
+	 @Operation(summary = "Create Customer",description = "e commerece online books store create customer")
+	    @ApiResponses({
+	     @ApiResponse(responseCode = "201",description = "customer created successfully"),
+	     @ApiResponse(responseCode = "400",description = "customer creation failure"),
+	     @ApiResponse(responseCode = "500",description = "Internal server error")
+	     })
+	@PostMapping("/customersave")
+	public ResponseEntity<ResponseMessage> createCustomer(@RequestBody CustomerDto customerDto){
+		 logger.info("Customer Controller layer \"/customersave\" API is calling/started");
+		 System.out.println("=====");
+		try {
+			if(customerDto.getEmail()==null || customerDto.getName()==null || customerDto.getEmail().isEmpty() || customerDto.getName().isEmpty()) {
+				logger.debug("Customer controller layer email/name is null : ",customerDto);
+				logger.warn("Missing email/name for customer register ");
+				logger.error("Customer register email/name is missing : Bad Register Data");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.FAILED, "Customer name or email cannot be empty", customerDto));
+			}
+			Customer insertCustomer = customerService.saveCustomer(customerDto);
+			 if(insertCustomer!=null) {
+				 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_SAVE_SUCCESS\".");
+				 return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseMessage(HttpURLConnection.HTTP_CREATED, Constants.SUCCESS, "Customer saved successfully", insertCustomer));
+			 }else {
+				 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_SAVE_FAILED\".");
+				 logger.info("Customer Controller layer \"/customersave\" API is calling ended");
+				 logger.error("Bad register data : Customer creation failed");
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.FAILED, "Customer creation Failed", insertCustomer));
+			 }
+			
+		}catch(Exception e) {
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseMessage(HttpURLConnection.HTTP_INTERNAL_ERROR, Constants.FAILED, "Internal Server Error"));
+		 }	
+	}
+		 
+	 @Operation(summary = "Update Customer",description = "e commerece online books store updating the customer")
+	    @ApiResponses({
+	     @ApiResponse(responseCode = "201",description = "customer updated successfully"),
+	     @ApiResponse(responseCode = "400",description = "customer update failure"),
+	     @ApiResponse(responseCode = "500",description = "Internal server error")
+	     })
+	@PutMapping("/updatecustomer/{id}")
+	public ResponseEntity<ResponseMessage> updateCustomer(@PathVariable Long id, @RequestBody Customer customer){
+		 logger.info("Customer Controller layer \"/updatecustomer/{id}\" API is calling/started");
+		 try {
+			 if(customer.getEmail()==null || customer.getName()==null || customer.getEmail().isEmpty() || customer.getName().isEmpty()) {
+				 logger.debug("Customer controller layer email/name is null : ",customer);
+				 logger.warn("Missing email/name for customer update ");
+				 logger.error("Customer login email/name is missing : Bad Register Data");
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.FAILED, "Customer name or email cannot be empty", customer));
+			  }
+			 
+			 Customer updateCustomer = customerService.updateCustomer(id, customer);
+			 if(updateCustomer!=null) {
+				 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_UPDATE_SUCCESS\".");
+				 return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseMessage(HttpURLConnection.HTTP_CREATED, Constants.SUCCESS, "Customer updated successfully", updateCustomer));
+			 }else {
+				 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_UPDATE_FAILED\".");
+				 logger.info("Customer Controller layer \"/updatecustomer/{id}\" API is calling ended");
+				 logger.error("Bad register data : Customer creation failed");
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.FAILED, "Customer updation Failed", updateCustomer));
+			 }
+			
+		}catch(Exception e) {
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseMessage(HttpURLConnection.HTTP_INTERNAL_ERROR, Constants.FAILED, "Internal Server Error"));
+		 }	
+	 }
+	 
+	 @Operation(summary = "Customer save or update",description = "e commerece online books store saving or updating the customer")
+	    @ApiResponses({
+	     @ApiResponse(responseCode = "201",description = "customer saved/updated successfully"),
+	     @ApiResponse(responseCode = "400",description = "customer save/update failure"),
+	     @ApiResponse(responseCode = "500",description = "Internal server error")
+	     })
+	 @PostMapping("/customersaveorupdate")
+	 public ResponseEntity<ResponseMessage> customerSaveOrUpdate(@RequestBody Customer customer){
+		 logger.info("Customer Controller layer \"/customersaveorupdate\" API is calling/started");
+		 try {
+			 if(customer.getEmail()==null || customer.getName()==null || customer.getEmail().isEmpty() || customer.getName().isEmpty()) {
+				 logger.debug("Customer controller layer email/name is null : ",customer);
+				 logger.warn("Missing email/name for customer save or update ");
+				 logger.error("Customer login email/name is missing : Bad Register Data");
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.FAILED, "Customer name or email cannot be empty", customer));
+			  }
+			 
+			 Customer updateOrSaveCustomer = customerService.updateOrSaveCustomer(customer);
+			 if(updateOrSaveCustomer!=null) {
+				 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_UPDATE_OR_SAVE_SUCCESS\".");
+				 return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseMessage(HttpURLConnection.HTTP_CREATED, Constants.SUCCESS, "Customer saved/updated successfully", updateOrSaveCustomer));
+			 }else {
+				 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_UPDATE_OR_SAVE_FAILED\".");
+				 logger.info("Customer Controller layer \"/customersaveorupdate\" API is calling ended");
+				 logger.error("Bad register data : Customer update or saving failed");
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.FAILED, "Customer updation Failed", updateOrSaveCustomer));
+			 }
+			
+		}catch(Exception e) {
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseMessage(HttpURLConnection.HTTP_INTERNAL_ERROR, Constants.FAILED, "Internal Server Error"));
+		 }	
+	 }
+	 
+	 @Operation(summary = "Get customer by id",description = "e commerece online books store get customer by id")
+	    @ApiResponses({
+	     @ApiResponse(responseCode = "201",description = "customer fetched successfully"),
+	     @ApiResponse(responseCode = "400",description = "customer fetch failure"),
+	     @ApiResponse(responseCode = "500",description = "Internal server error")
+	     })
+	 @GetMapping("/getbyid/{id}")
+	 public ResponseEntity<ResponseMessage> getCustomerById(@PathVariable Long id){
+		 logger.info("Customer Controller layer \"/getbyid/{id}\" API is calling/started");
+		 Customer getById = customerService.getById(id);
+		 logger.debug("User id found : ",getById);
+		 if(getById!=null) {
+			 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_FETCH_BY_ID_SUCCESS\".");
+			 return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(HttpURLConnection.HTTP_OK, Constants.SUCCESS, "Customer Fetched", getById));
+		 }else {
+			 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_FETCH_BY_ID_FAILED\".");
+			 logger.info("Customer Controller layer \"/getbyid/{id}\" API is calling ended");
+			 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.FAILED, "Error Fetching Customer", null));
+		 }
+	 }
+	  
+	 @Operation(summary = "Get all customers",description = "e commerece online books store get all customers")
+	    @ApiResponses({
+	     @ApiResponse(responseCode = "201",description = "customers fetched successfully"),
+	     @ApiResponse(responseCode = "400",description = "customers fetch failure"),
+	     @ApiResponse(responseCode = "500",description = "Internal server error")
+	     })
+	 @GetMapping("/getallcustomers")
+	 public ResponseEntity<ResponseMessage> getAllCustomers(){
+		 logger.info("Customer Controller layer \"/getbyid/{id}\" API is calling/started");
+		 List<Customer> getAll = customerService.getAllCustomers();
+		
+		 try {
+			 if(getAll!=null) {
+				 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_FETCH_ALL_SUCCESS\".");
+				 return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(HttpURLConnection.HTTP_OK, Constants.SUCCESS, "Customer Fetched", getAll));
+			 }else {
+				 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_FETCH_ALL_FAILED\".");
+				 logger.info("Customer Controller layer \"/getall\" API is calling ended");
+				 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.FAILED, "Error Fetching Customer", null));
+			 }
+		 }catch(Exception e) {
+			 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseMessage(HttpURLConnection.HTTP_INTERNAL_ERROR, Constants.FAILED, "Internal Server Error"));
+		 }
+	 }
+	 
+//	 @GetMapping("/triggererror")
+//	 public String triggerError() {
+//		 if(true) {
+//			 throw new InternalServerErrorException("Something went wrong inside the server...!");
+//		 }
+//		return "No error";
+//	 }
+
+	 @GetMapping("/getAllCustomersWithPagination")
+	 public ResponseEntity<ResponseMessage> getByAllCustomerPagination(@RequestParam int page, @RequestParam int size, @RequestParam String sortField, @RequestParam String pageDir){
+		 logger.info("Customer Controller layer \"getAllCustomersWithPagination\" API is calling/started");
+		 Page<Customer> byAllCustomerWithPaginations = customerService.byAllCustomerWithPaginations(page,size,sortField,pageDir);
+		 if(byAllCustomerWithPaginations!=null) {
+			 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_FETCH_ALL_WITH_PAGINATION_SUCCESS\".");
+			 return ResponseEntity.ok(new ResponseMessage(HttpURLConnection.HTTP_OK, Constants.SUCCESS, "All Customers Getting with pagination successfully", byAllCustomerWithPaginations));
+		 }else {
+			 logger.info("Customer controller layer \"BOOK_STORE_CUSTOMER_FETCH_ALL_WITH_PAGINATION_FAILED\".");
+			 logger.info("Customer Controller layer \"getAllCustomersWithPagination\" API is calling ended");
+			 return ResponseEntity.ok(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.FAILED, "All Customers Getting with pagination failure", byAllCustomerWithPaginations));
+		 }
+	 }
+	 
+}
+
+
+
+
+

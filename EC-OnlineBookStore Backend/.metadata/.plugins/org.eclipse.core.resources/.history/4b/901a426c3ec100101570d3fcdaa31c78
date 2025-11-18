@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: APIGateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: ms-1
+              uri: lb://USERREGISTERSERVICE
+              predicates:
+              - Path=/user/**
+            - id: ms-2
+              uri: lb://CUSTOMERSERVICE
+              predicates:
+              - Path=/customer/**
+            - id: ms-3
+              uri: lb://BOOKSERVICE
+              predicates:
+              - Path=/books/**
+            - id: ms-4
+              uri: lb://CARTSERVICE
+              predicates:
+              - Path=/cart/**
+						- id: ms-5
+							uri: lb://ORDERSERVICE
+							predicates:
+							- Path=/orders/**
+server:
+  port: 7777

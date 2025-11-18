@@ -1,0 +1,44 @@
+package com.nit.controller;
+
+import java.net.HttpURLConnection;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.jaxb.SpringDataJaxb.OrderDto;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import com.nit.model.ResponseMessage;
+import com.nit.service.OrderService;
+import com.nit.utility.Constants;
+
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+
+public class RatingsController {
+	
+	@Autowired
+	OrderService orderService;
+	
+	@PostMapping("/placeorder")
+	public ResponseEntity<ResponseMessage> placeOrder(@RequestBody OrderDto orderDto){
+		try {
+			// 1. Call the service layer to handle order creation logic
+			// the service method (saveOrders) will validate, check prime status, and save the order
+			String saveOrders = orderService.saveOrders(orderDto);
+			
+			// 2. Check if the returned message from service indicates success 
+			// using contains("success") to detect a successful message from the service layer
+			if(saveOrders.toLowerCase().contains("success")) {
+				
+				// 3. Return a success response to the client
+				return ResponseEntity.ok(new ResponseMessage(HttpURLConnection.HTTP_CREATED, Constants.SUCCESS, "Order Placed Successfully", saveOrders));
+			}else {
+				// 4. If service returned a failure message, send a bad request response
+				return ResponseEntity.ok(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.FAILED, "Order Placement Failed", saveOrders));				
+			}
+		}catch(Exception e) {
+			// 5. In case of any unexpected exceptions, log and return an interval error response
+			e.printStackTrace();
+			return ResponseEntity.ok(new ResponseMessage(HttpURLConnection.HTTP_INTERNAL_ERROR, Constants.FAILED, "Internal Server Error"));							
+		}
+	}
+}

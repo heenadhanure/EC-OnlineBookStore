@@ -1,0 +1,19 @@
+package com.nit.service;
+
+import java.util.List;
+
+import com.nit.entity.Cart;
+
+public interface CartService {
+
+	Cart addItemToCart(Long customerId, Long bookId, int quantity);
+
+	void removeItemFromCart(Long id);
+
+	List<Cart> getAllItems();
+
+	Cart updateItemQuatity(Long id, int quantity);
+
+	Cart getCartItem();
+	
+}

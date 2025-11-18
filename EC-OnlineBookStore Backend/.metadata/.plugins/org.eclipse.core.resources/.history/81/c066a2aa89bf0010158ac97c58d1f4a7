@@ -1,0 +1,75 @@
+package com.nit.controller;
+
+import java.net.HttpURLConnection;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.nit.entity.Cart;
+import com.nit.model.ResponseMessage;
+import com.nit.service.CartService;
+import com.nit.utility.Constants;
+
+@RestController
+public class CartController {
+	
+	@Autowired
+	private CartService cartService;
+	
+	@PostMapping("/addtocart")
+	public ResponseEntity<ResponseMessage> addToCart(@RequestParam Long customerId, @RequestParam Long bookId, @RequestParam int quantity){
+		try{
+			Cart addItemToCart = cartService.addItemToCart(customerId, bookId, quantity);
+			if(addItemToCart!=null) {
+				return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(HttpURLConnection.HTTP_OK, Constants.SUCCESS, "Item Added to Cart", addItemToCart));
+			}else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.FAILED, "Adding Item to Cart Failed", addItemToCart));
+			}
+		}catch(Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseMessage(HttpURLConnection.HTTP_INTERNAL_ERROR, Constants.FAILED, "Internal Server Error"));			
+		}
+	}
+	
+	@GetMapping("/retrieveitemsfromcart")
+	public ResponseEntity<ResponseMessage> retriveAllItemsFromCart(){
+		try {
+			List<Cart> getAllItems = cartService.getAllItems();
+			if(getAllItems!=null)
+				return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(HttpURLConnection.HTTP_OK, Constants.SUCCESS, "All Items Retrieved Successfully from Cart", getAllItems));
+			else
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.SUCCESS, "Error Fetching Items From Cart", getAllItems));
+		}catch(Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseMessage(HttpURLConnection.HTTP_INTERNAL_ERROR, Constants.FAILED, "Internal Server Error"));
+		}
+	}
+	
+	@PutMapping("/updateitemquantity/{customerId}")
+	public ResponseEntity<ResponseMessage> updateQuantity(@PathVariable Long id, @RequestParam Long bookId, @RequestParam int quantity ){
+		try {
+			Cart updateItemQuatity = cartService.updateItemQuatity(id, bookId, quantity);
+			if(updateItemQuatity!=null) {
+				return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(HttpURLConnection.HTTP_OK, Constants.SUCCESS, "Item quantity updated in the Cart", updateItemQuatity));
+			}else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseMessage(HttpURLConnection.HTTP_BAD_REQUEST, Constants.SUCCESS, "Error updating quantity of item in the cart", updateItemQuatity));
+			}
+		}catch(Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseMessage(HttpURLConnection.HTTP_INTERNAL_ERROR, Constants.FAILED, "Internal Server Error"));			
+		}
+	}
+	
+	
+	@DeleteMapping("/removeitemfromcart/{id}")
+	public ResponseEntity<ResponseMessage> deleteItemFromCart(@PathVariable Long id){
+		cartService.removeItemFromCart(id);
+		return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(HttpURLConnection.HTTP_OK, Constants.SUCCESS, "Item Removed From Cart")); 
+	}
+}

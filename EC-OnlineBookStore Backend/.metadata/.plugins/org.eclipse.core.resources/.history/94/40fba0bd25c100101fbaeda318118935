@@ -1,0 +1,10 @@
+package com.nit.serviceImpl;
+
+import org.springframework.stereotype.Service;
+
+import com.nit.service.RatingsService;
+
+@Service
+public class RatingsServiceImpl implements RatingsService{
+
+}

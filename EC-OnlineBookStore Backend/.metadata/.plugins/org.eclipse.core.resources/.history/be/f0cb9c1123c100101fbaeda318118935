@@ -1,0 +1,93 @@
+package com.nit.serviceImpl;
+
+import java.awt.print.Book;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.nit.entity.Orders;
+import com.nit.entity.UserRegister;
+import com.nit.model.OrderDto;
+import com.nit.repository.OrderRepository;
+import com.nit.repository.UserRegisterRepo;
+import com.nit.service.OrderService;
+
+@Service
+public class OrderServiceImpl implements OrderService{
+
+	@Autowired
+	private UserRegisterRepo userRegisterRepo;
+	
+	@Autowired
+	private OrderRepository orderRepository;
+	
+	@Override
+	public String saveOrders(OrderDto orderDto) {
+		
+		// 1. Check if the request body or titles are empty
+		if(orderDto == null || orderDto.getTitle() == null || orderDto.getTitle().isEmpty()) {
+			return "No book selected. Please select at least one book to proceed.";
+		}
+		
+		// 2. Extract Customer Id and selected book titles
+		Long customerId = orderDto.getCustomerId();
+		List<String> selectedBooks = orderDto.getTitle();
+		
+		// 3. Check whether the user is a prime member or not
+		Boolean isPrimeUser = checkPrimeUser(customerId);
+		
+		// 4. Apply rule for Non-prime users
+		if(!isPrimeUser) {
+			
+			// Non-prime users cannot order more than one book at a time
+			if(selectedBooks.size()>1) {
+				return "Non-prime users can select only one book";
+			}
+			
+			// Non-prime users can place only one order per week
+			List<Orders> anyLastWeekPlaced = orderRepository.findAnyLastWeekPlaced(customerId);
+			
+			if(!anyLastWeekPlaced.isEmpty()) {
+				return "Non-prime users can place only one order per week.";
+			}
+			
+		}
+		
+		// 5. Iterate through each selected book and validate availability
+		for(String title : selectedBooks) {
+			
+			// Find book details by title
+			Book bookName = orderRepository.findByBookName(title);
+			
+			// If the book doesn't exist, return a message
+			if(bookName == null) {
+				return "No book found : "+title;
+			}
+			
+			// Create a new order entry for the customer
+			Orders order = new Orders();
+			order.setBookId(bookName.getId());
+			order.setCustomerId(customerId);
+			order.setStatus(false);	// Default status = pending/unprocessed
+			
+			// Save order in the database
+			orderRepository.save(order);
+		}
+		
+		return "Order Placed Successfully. Thank You...!";
+	}
+	
+	// Helper method to check whether the user is a Prime user
+		private Boolean checkPrimeUser(Long custmerId) {
+
+			// Fetch user by ID
+			Optional<UserRegister> user = userRegisterRepo.findById(custmerId);
+
+			// Return Prime status if available, else default to false
+			return user.map(UserRegister::getIsPrime).orElse(false);
+		
+	}
+
+}

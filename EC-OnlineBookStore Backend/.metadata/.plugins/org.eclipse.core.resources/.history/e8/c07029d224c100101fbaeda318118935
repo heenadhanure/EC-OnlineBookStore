@@ -1,0 +1,5 @@
+package com.nit.serviceImpl;
+
+public class RatingsServiceImpl {
+
+}

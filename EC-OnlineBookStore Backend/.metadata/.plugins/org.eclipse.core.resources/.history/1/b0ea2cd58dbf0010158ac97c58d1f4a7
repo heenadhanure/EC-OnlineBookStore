@@ -1,0 +1,76 @@
+package com.nit.serviceImpl;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.nit.entity.Book;
+import com.nit.entity.Cart;
+import com.nit.entity.Customer;
+import com.nit.exceptions.BookNotFoundException;
+import com.nit.exceptions.CustomerIdNotFoundException;
+import com.nit.repository.BookRepo;
+import com.nit.repository.CartRepo;
+import com.nit.repository.CustomerRepo;
+import com.nit.service.CartService;
+
+@Service
+public class CartServiceImpl implements CartService{
+
+	@Autowired
+	CartRepo cartRepo;
+	
+	@Autowired
+	CustomerRepo customerRepo;
+	
+	@Autowired
+	BookRepo bookRepo;
+	
+	@Override
+	public Cart addItemToCart(Long customerId, Long bookId, int quantity) {
+		Customer customer = customerRepo.findById(customerId).orElseThrow(() -> new CustomerIdNotFoundException("Customer id not found"));
+		
+		Book book = bookRepo.findById(bookId).orElseThrow(() -> new BookNotFoundException("Book id not found"));
+		
+		Cart cartItem = cartRepo.findByCustomerAndBook(customer, book);
+		
+		if(cartItem!=null) {
+			cartItem.setQuantity((cartItem.getQuantity() + quantity));
+		}else {
+			cartItem = new Cart(customer, book, quantity);
+		}		
+		
+		cartItem.setTotalPrice((cartItem.getQuantity()*book.getBookPrice()));
+		
+		return cartRepo.save(cartItem);
+	}
+
+	@Override
+	public List<Cart> getAllItems() {
+		List<Cart> allItems = cartRepo.findAll();
+		return allItems;
+	}
+
+	@Override
+	public void removeItemFromCart(Long id) {
+		cartRepo.deleteById(id);
+	}
+
+	@Override
+	public Cart updateItemQuatity(Long id, int quantity) {
+		
+		Cart cart = new Cart();
+		Optional<Cart> findById = cartRepo.findById(id);
+		Cart cart1 = findById.get();
+		
+		if(findById!=null) {
+			cart.setQuantity(cart1.getQuantity());
+		}
+		
+		return cartRepo.save(cart));
+	}
+
+
+}

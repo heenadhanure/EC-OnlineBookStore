@@ -1,0 +1,9 @@
+package com.nareshit.service;
+
+import com.nareshit.model.OrderDto;
+
+public interface OrderService {
+
+	String saveOrders(OrderDto orderDto);
+
+}
