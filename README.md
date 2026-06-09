@@ -65,7 +65,7 @@ spring.datasource.password= your_password
 - Test all the REST APIs in Postman or Insomnia 
 
 ## 📜 License
-This project is licensed under the [MIT](https://github.com/heenadhanure/E-Store/blob/790b7dd25cf23a9d7747aa9b74286fa815cf021d/LICENSE) License.
+This project is licensed under the [MIT](https://github.com/heenadhanure/EC-OnlineBookStore/blob/a4be7beb8ba496cafa3a359959b90e8ba412b6e7/LICENSE) License.
 
 ## Contact
 - Name : Dhanure Heena
